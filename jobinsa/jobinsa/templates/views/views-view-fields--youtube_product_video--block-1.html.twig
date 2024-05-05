@@ -1,0 +1,32 @@
+{% if fields.field_video_block.content|render is not empty %}
+  <div class="youtube-para" data-id="{{ fields.field_video_block.content }}">
+    <div class="play-btn-wrap"><div class="play-btn"><img src="/themes/jobinsa/images/triangle-wht.svg"></div></div>
+  </div>
+  <script type="text/javascript">
+    (function() {
+      var youtube = document.querySelectorAll( ".youtube-para" );
+      for (var i = 0; i < youtube.length; i++) {
+        {% if fields.field_media_image.content|render is not empty %}
+          {% set img_url = fields.field_media_image.content|render|striptags|trim  %}
+          var source = "{{ img_url }}";
+        {% else %}
+          var source = "https://img.youtube.com/vi/"+ youtube[i].dataset.id +"/maxresdefault.jpg"
+        {% endif %}
+        console.log(youtube[i].dataset.id);
+        var image = new Image();
+        image.src = source;
+        image.addEventListener( "load", function() {
+          youtube[i].appendChild(image);
+        }(i));
+        youtube[i].addEventListener( "click", function() {
+          var iframe = document.createElement( "iframe" );
+          iframe.setAttribute( "frameborder", "0" );
+          iframe.setAttribute( "allowfullscreen", "" );
+          iframe.setAttribute( "src", "https://www.youtube.com/embed/"+ this.dataset.id +"?rel=0&showinfo=0&autoplay=1&mute=1" );
+          this.innerHTML = "";
+          this.appendChild(iframe);
+        });
+      };
+    })();
+  </script>
+{% endif %}

@@ -1,0 +1,33 @@
+{% if (fields.field_media_image.content is not empty) or (fields.field_subtitle.content is not empty) or (fields.body.content is not empty) or (fields.field_button_link.content is not empty) %}
+<div id="myModal" class="modal fade" tabindex="-1" data-nodeid="{{ fields.nid.content }}">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><img src="/themes/jobinsa/images/icon-close.svg"></button>
+        </div>
+        <div class="modal-body">
+          <div class="pop-up-content row align-items-center">
+            {% if (fields.field_media_image.content is not empty) %}
+              <div class="col-md-6 left-pop-up-content">
+                <div class="pop-up-thumbnail"> {{fields.field_media_image.content}}</div>
+              </div>
+            {% endif %}
+            {% if (fields.field_subtitle.content is not empty) or (fields.body.content is not empty) or (fields.field_button_link.content is not empty) %}
+            <div class="col-md-6 right-pop-up-content">
+              {% if (fields.field_subtitle.content is not empty) %}
+                <h2 class="pop-up-view-title border-bottom-line">{{fields.field_subtitle.content}}</h2>
+              {% endif %}
+              {% if (fields.body.content is not empty) %}
+                <div class="pop-up-view-desc">{{fields.body.content}}</div>
+              {% endif %}
+              {% if (fields.field_button_link.content is not empty) %}
+                <div class="pop-up-view-link">{{fields.field_button_link.content}}</div>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+    </div>
+  </div>
+</div>
+{% endif %}

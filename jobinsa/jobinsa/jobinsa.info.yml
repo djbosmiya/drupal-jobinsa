@@ -1,0 +1,27 @@
+name: Jobin SA
+type: theme
+description: 'Basic structure for a Bootstrap Barrio SubTheme.'
+core: 8.x
+core_version_requirement: ^8 || ^9
+base theme: bootstrap_barrio
+
+libraries:
+  - jobinsa/bootstrap
+  - jobinsa/global-styling
+
+regions:
+  header: Header
+  primary_menu: 'Primary menu'
+  secondary_menu: 'Secondary menu'
+  page_top: 'Page top'
+  page_bottom: 'Page bottom'
+  highlighted: Highlighted
+  featured_top: 'Featured top'
+  breadcrumb: Breadcrumb
+  content: Content
+  contact_block: 'Contact block'
+  footer_first: 'Footer first'
+  footer_second: 'Footer second'
+  footer_third: 'Footer third'
+  footer_fourth: 'Footer fourth'
+  footer_fifth: 'Footer fifth'

@@ -1,0 +1,7 @@
+consommable_calculator.mailsetting:
+  path: '/admin/config/mailsetting'
+  defaults:
+    _form: '\Drupal\consommable_calculator\Form\EmailDetailForm'
+    _title: 'Email Setting'
+  requirements:
+    _permission: 'administer site configuration'

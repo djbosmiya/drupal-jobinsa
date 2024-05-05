@@ -1,0 +1,7 @@
+name: Inscription cours selector
+type: module
+core_version_requirement: ^8.8 || ^9
+description: Allows to select cours category
+version: '9.x-1.0'
+project: 'inscription_cours_selector'
+package: Custom

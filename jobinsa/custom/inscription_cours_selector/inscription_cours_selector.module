@@ -1,0 +1,123 @@
+<?php
+
+/**
+ * @file
+ * Contains create_reservation_crypte.module. inscription_cours_selector
+ */
+
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\Entity\Node;
+use Drupal\Core\Url;
+
+function inscription_cours_selector_form_node_inscription_cours_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
+	if (\Drupal::routeMatch()->getRouteName() == 'entity.node.canonical') {
+		$node = \Drupal::routeMatch()->getParameter('node');
+		$typeName = $node->bundle();
+		$jour_nids = $results = [];
+		$jour_nids['_none'] = '- Aucun(e) -';
+
+		if($typeName == 'cours') {
+			if ($node instanceof \Drupal\node\NodeInterface) {
+				$nid = $node->id();
+				// if(($nid == 105) || ($nid == 106)){
+
+					//dpm($form['field_participant']['widget']['add_more']['add_more_button_participant_block']['#value'] = 'Ajouter un participant');
+
+					$inscription_cours_form_field = array('field_entreprise', 'field_personne_de_contact', 'field_email_personne_de_contact', 'field_telephone');
+					foreach ($inscription_cours_form_field as $key => $value) {
+						$form[$value]['widget'][0]['value']['#title_display'] = 'after';
+						$form[$value]['widget'][0]['value']['#wrapper_attributes'] = ['class' => ['form-floating']];
+					}
+
+					$paragraph_subform = $form['field_participant']['widget'];
+					$inscription_cours_para_form_field = array('field_nom', 'field_prenom');
+					foreach ($paragraph_subform as $subform_key => $subform_value) {
+						if(is_int($subform_key)) {
+							foreach ($inscription_cours_para_form_field as $key => $value) {
+								$form['field_participant']['widget'][$subform_key]['subform'][$value]['widget'][0]['value']['#title_display'] = 'after';
+								$form['field_participant']['widget'][$subform_key]['subform'][$value]['widget'][0]['value']['#wrapper_attributes'] = ['class' => ['form-floating']];
+							}
+						}
+					}
+
+					$field_name_arr = array('field_jour1', 'field_jour2');
+					foreach ($paragraph_subform as $subform_key => $subform_value) {
+						if(is_int($subform_key)) {
+							foreach ($field_name_arr as $key => $value) {
+								$field_jour_title = $form['field_participant']['widget'][$subform_key]['subform'][$value]['widget']['#title'];
+								$form['field_participant']['widget'][$subform_key]['subform'][$value]['widget']['#options']['_none'] = $field_jour_title;
+
+								$field_jour_data = $form['field_participant']['widget'][$subform_key]['subform'][$value];
+								$field_jour_options = $field_jour_data['widget']['#options'];
+								$query = \Drupal::entityQuery('node')
+									->condition('type', 'date_de_cours')
+									->condition('nid', array_keys($field_jour_options), 'IN')
+									->condition('field_cours', $nid);
+								$results = $query->execute();
+								
+								if(!empty($results)) {
+									$nids = array_values($results);
+		          					$nids = array_combine($nids, $nids);
+		          					$nids['_none'] = $field_jour_options['_none'];
+									$form['field_participant']['widget'][$subform_key]['subform'][$value]['widget']['#options'] = array_intersect_key($field_jour_options, $nids);
+								}
+								else {
+									$form['field_participant']['widget'][$subform_key]['subform'][$value]['widget']['#access'] = FALSE;
+								}
+							}
+						}
+					}
+
+					$form['field_cours']['widget']['#default_value'] = $nid;
+
+					$form['field_participant']['widget']['add_more']['add_more_button_participant_block']['#value'] = 'Ajouter un participant';
+
+					$form['actions']['submit']['#value'] = "Envoyer la demande d'inscription";
+
+					$form['field_participant']['widget']['add_more']['add_more_button_participant_block']['#limit_validation_errors'] = array(array('field_nom'));
+
+					$form['form_info'] = [
+						'#type' => 'markup',
+						'#markup' => t('<div class="form-info">Les informations transmises par le biais du présent formulaire sont strictement confidentielles et ne sont pas utilisées à des fins commerciales.</div>'),
+					];
+
+					$form['#validate'][] = 'inscription_cours_selector_inscription_cours_node_form_validate';
+					$form['actions']['submit']['#submit'][] = 'inscription_cours_selector_inscription_cours_node_form_submit';
+				// }
+			}
+		}
+	}
+}
+
+
+function inscription_cours_selector_inscription_cours_node_form_validate(&$form, FormStateInterface &$form_state) {
+	$participants = $form_state->getValue('field_participant');
+    $triggerd_element = $form_state->getTriggeringElement();
+    if($triggerd_element['#name'] == 'field_participant_participant_block_add_more') {
+  //   	$inscription_cours_para_form_field = array('field_nom', 'field_prenom');
+		// foreach ($inscription_cours_para_form_field as $key => $value) {
+		// 	$participants[0]['subform'][$value][0]['value']['#title_display'] = 'after';
+		// 	$participants[0]['subform'][$value][0]['value']['#wrapper_attributes'] = ['class' => ['form-floating']];
+		// }
+
+		// $inscription_cours_para_form_field = array('field_jour1', 'field_jour2');
+		// foreach ($inscription_cours_para_form_field as $key => $value) {
+		// 	$field_jour_title = $participants[0]['subform'][$value]['#title'];
+		// 	$participants[0]['subform'][$value]['#options']['_none'] = $field_jour_title;
+		// }
+
+		//dpm($participants);
+
+    	$field_nom = $participants[0]['subform']['field_nom'][0]['value'];
+    	if($field_nom == '') {
+    		$form_state->setErrorByName('field_nom', 'Le champ Nom est requis');
+    	}
+    }
+}
+
+function inscription_cours_selector_inscription_cours_node_form_submit(&$form, FormStateInterface &$form_state){
+	$dest_url = "/confirmation-cours";
+  	$url = Url::fromUri('internal:' . $dest_url);
+  	$form_state->setRedirectUrl( $url );
+}

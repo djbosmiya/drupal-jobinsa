@@ -1,0 +1,8 @@
+name: Consommable calculator
+type: module
+description: Calculates consommable price
+core_version_requirement: ^8.8 || ^9
+
+version: '9.x-1.0'
+project: 'consommable_calculator'
+package: Custom

@@ -1,0 +1,5 @@
+consommable_calculator.mailsetting:
+  title: Email Settings
+  description: 'Add email to and cc for the mail template'
+  parent: system.admin_config_system
+  route_name: consommable_calculator.mailsetting

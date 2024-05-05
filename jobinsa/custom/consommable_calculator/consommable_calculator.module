@@ -1,0 +1,259 @@
+<?php
+
+/**
+ * @file
+ * Contains create_reservation_crypte.module.
+ */
+
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\Entity\Node;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\HtmlCommand;
+use Drupal\Core\Form\ConfigFormBase;
+use Drupal\Core\Database\Database;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
+
+function consommable_calculator_page_attachments(array &$attachments) {
+    $attachments['#attached']['library'][] =  'consommable_calculator/consommable-calculator';
+}
+
+function consommable_calculator_mail($key, &$message, $params) {
+  $options = array(
+    'langcode' => $message['langcode'],
+  );
+
+  switch ($key) {
+    case 'product_inquiry_logs_mail':
+      $message['from'] = \Drupal::config('system.site')->get('mail');
+      $message['subject'] = t('@title', array('@title' => $params['title']), $options);
+      $message['body'][] = $params['message'];
+      $message['headers'] += $params['headers'];
+      break;
+  	}
+}
+
+function consommable_calculator_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
+	if (\Drupal::routeMatch()->getRouteName() == 'entity.node.canonical') {
+		$node = \Drupal::routeMatch()->getParameter('node');
+		$typeName = $node->bundle();
+		$nid = '';
+		if ($node instanceof \Drupal\node\NodeInterface) {
+			$nid = $node->id();
+		}
+
+		if($typeName == 'consommable') {
+			$webform_id = $form['#webform_id'];
+			if($webform_id == 'vos_coordonnees_webform') {
+				//if ($node instanceof \Drupal\node\NodeInterface) {
+					// $nid = $node->id();
+					//$count = '';
+					// $consommable_node = Node::load($nid);
+
+					$nids = \Drupal::entityQuery('node')->condition('type','consommable')->execute();
+					$nodes =  \Drupal\node\Entity\Node::loadMultiple($nids);
+					$n_count = count($nids);
+					// $field_subproducts_cartouches = $consommable_node->get('field_subproducts_cartouches')->getValue();
+					// $field_subproducts_tetes_d_impres = $consommable_node->get('field_subproducts_tetes_d_impres')->getValue();
+					// $field_subproducts_papier_en_roul = $consommable_node->get('field_subproducts_papier_en_roul')->getValue();
+					// $field_subproducts_papier = $consommable_node->get('field_subproducts_papier')->getValue();
+					// $consommable_data = array_merge ($field_subproducts_cartouches, $field_subproducts_tetes_d_impres, $field_subproducts_papier_en_roul, $field_subproducts_papier);
+
+					$form['product_wrapper'] = array(
+						'#type' => 'container',
+						'#attributes' => array(
+							'class' => array('product-list-wrapper'),
+						),
+					);
+					$form['product_wrapper']['product'] = array(
+						'#type' => 'table',
+						'#caption' => 'Séléctionnez les produits et les quantités',
+						'#header' => array('Produit', 'Prix (HT)', 'Quantité', 'Total'),
+					);
+					// if(!empty($consommable_data)) {
+						foreach($nodes as $key => $node_content){
+					// 		$subproduct_node_id = $consommable_data[$i]['target_id'];
+
+					// 		$subproduct_node = Node::load($subproduct_node_id);
+							$subproduct_node_id = $node_content->id();
+					 		$title = $node_content->getTitle();
+							$price = $node_content->get('field_price')->value;
+							$sku = $node_content->get('field_sku_id')->value;
+
+							if ($nid != $subproduct_node_id) {
+							$form['product_wrapper']['product'][$subproduct_node_id]['subproduct_id_label_'.$subproduct_node_id] = array(
+								'#type' => 'markup',
+								'#markup' => t('<div class="title" id="subproduct_id_label_'.$subproduct_node_id.'">' .$sku." | ".$title.'</div>'),
+							);
+
+							$form['product_wrapper']['product'][$subproduct_node_id]['subproduct_id_price_'.$subproduct_node_id] = array(
+								'#type' => 'markup',
+								'#markup' => t('<div class="price" id="subproduct_id_price_'.$subproduct_node_id.'">'.$price.' CHF</div>'),
+							);
+
+							$form['product_wrapper']['product'][$subproduct_node_id]['subproduct_id_number_'.$subproduct_node_id] = array(
+								'#type' => 'number',
+								'#min' => 0,
+								'#id' => 'subproduct_id_number_'.$subproduct_node_id,
+								'#default_value' => 0,
+							);
+
+							$form['product_wrapper']['product'][$subproduct_node_id]['subproduct_id_total_'.$subproduct_node_id] = array(
+								'#type' => 'textfield',
+								'#attributes' => ['id' => 'subproduct_id_total_'.$subproduct_node_id, 'readonly' => 'readonly', 'class' => ['subtotal-field']],
+							);
+						}
+					}
+						$form['product_wrapper']['product'][$n_count]['subproduct_id_empty'] = array(
+							'#type' => 'markup',
+						);
+
+						$form['product_wrapper']['product'][$n_count]['subproduct_id_empty_2'] = array(
+							'#type' => 'markup',
+						);
+
+						$form['product_wrapper']['product'][$n_count]['subproduct_id_final_total_label'] = array(
+							'#type' => 'markup',
+							'#markup' => t('<div class="final-total-label">Total (HT.):</div>'),
+						);
+
+						$form['product_wrapper']['product'][$n_count]['subproduct_id_final_total_price'] = array(
+							'#type' => 'textfield',
+							'#attributes' => ['id' => 'final-total-price', 'readonly' => 'readonly'],
+						);
+					//}	
+				//}
+				$form['actions']['submit']['#submit'][] = 'consommable_inquiry_form_submit';
+			}
+		}
+	}
+}
+
+function consommable_inquiry_form_submit(&$form, FormStateInterface $form_state) {
+	$product_data = $product_list = [];
+	$product_data_arr = $form['product_wrapper']['product'];
+
+	$elements = $form['elements']['container'];
+	$entreprise = $elements['entreprise']['#value'];
+	$civilite = $elements['civilite_']['#value'];
+	$nom = $elements['nom_']['#value'];
+	$prenom = $elements['prenom_']['#value'];
+	$adresse = $elements['adresse_']['#value'];
+	$npa_ville = $elements['npa_ville_']['#value'];
+	$telephone = $elements['telephone']['#value'];
+	$email = $elements['email_']['#value'];
+	$commentaire = $elements['commentaire']['#value'];
+	$current_date = date("d.m.Y");
+
+	
+	$message.="<div style=\"width:90%;padding-left:4%;padding-right:4%;padding-top:25px;\">
+			<span style=\"font-weight:500;font-size:25px;padding-right:10px;\">Détails du client </span>
+			<ul style=\"list-style:none;padding:0px;\">
+				<li style=\"font-size:15px;\"><span style=\"font-weight:600;padding-right:10px;\">Entreprise: </span>".$entreprise."</li>
+				<li style=\"font-size:15px;\"><span style=\"font-weight:600;padding-right:10px;\">Civilité: </span>".$civilite."</li>
+				<li style=\"font-size:15px;\"><span style=\"font-weight:600;padding-right:10px;\">Nom: </span>".$nom."</li>
+				<li style=\"font-size:15px;\"><span style=\"font-weight:600;padding-right:10px;\">Prénom: </span>".$prenom."</li>
+				<li style=\"font-size:15px;\"><span style=\"font-weight:600;padding-right:10px;\">Adresse: </span>".$adresse."</li>
+				<li style=\"font-size:15px;\"><span style=\"font-weight:600;padding-right:10px;\">NPA / Ville: </span>".$npa_ville."</li>
+				<li style=\"font-size:15px;\"><span style=\"font-weight:600;padding-right:10px;\">Téléphone: </span>".$telephone."</li>
+				<li style=\"font-size:15px;\"><span style=\"font-weight:600;padding-right:10px;\">E-mail: </span>".$email."</li>
+				<li style=\"font-size:15px;\"><span style=\"font-weight:600;padding-right:10px;\">Commentaire: </span>".$commentaire."</li>
+		    <ul>\n\n
+		</div>\n\n";
+
+
+	if(!empty($product_data_arr)) {
+		$message.= "<div style=\"width:90%;padding-left:4%;padding-right:4%;padding-top:25px;\">
+			<span style=\"font-weight:500;font-size:25px;padding-right:10px;padding-bottom:15px;\">Produits</span>
+			<table width=\"100%\" border=\"1\" align=\"center\">
+			 <tr>
+			 <th>Produit</th>
+			 <th>Prix (HT)</th>
+			 <th>Quantité</th>
+			 <th>Total</th>
+			 </tr>";
+			
+
+		foreach ($product_data_arr as $key => $value){
+			if(strpos($key, "#") === false) {
+				$product_data[$key] = $product_data_arr[$key];
+			}
+		}
+
+		foreach ($product_data as $key => $value) {
+			if ($key !== array_key_last($product_data)) {
+				$product_list[$key] = $value;
+			}
+		}
+
+		foreach ($product_list as $key => $value) {
+			$subproduct_id_label = $form['product_wrapper']['product'][$key]['subproduct_id_label_'.$key]['#markup'];
+			$subproduct_id_price = $form['product_wrapper']['product'][$key]['subproduct_id_price_'.$key]['#markup'];
+			$subproduct_id_number = $form['product_wrapper']['product'][$key]['subproduct_id_number_'.$key]['#value'];
+			$subproduct_id_total = $form['product_wrapper']['product'][$key]['subproduct_id_total_'.$key]['#value'];
+				
+			if($subproduct_id_number > 0) {
+				$message.= "<tr>
+					<td align=\"left\">".$subproduct_id_label."</td>
+					<td align=\"left\">".$subproduct_id_price."</td>
+					<td align=\"left\">".$subproduct_id_number."</td>
+					<td align=\"left\">".$subproduct_id_total."</td>
+					</tr>" ;
+			}
+		}
+
+		$product_last = end($product_data);
+
+		$subproduct_id_finaltotal = $product_last['subproduct_id_final_total_price']['#value'];
+		
+		$message.= "<tr>
+			<td align=\"left\"></td>
+			<td align=\"left\"></td>
+			<td align=\"left\">Total (HT.):</td>
+			<td align=\"left\">".$subproduct_id_finaltotal."</td>
+			</tr>" ;
+		
+		$message.= "
+		 </table>\n\n
+		</div>\n\n";
+	}
+
+	$node = Node::create([
+	  'type'        => 'product_inquiry_logs',
+	  'title'       => $prenom." ".$nom." | ".$current_date,
+	  'body' => array(
+     	'value' =>   	$message,
+     	'format' => 'full_html',
+        ),
+	]);
+	$node->save();
+
+
+	$config = \Drupal::config('consommable_calculator.settings');
+	$email_to = $config->get('email_to');
+	$email_cc = $config->get('email_cc');
+	$email_subject = $config->get('email_subject');
+
+	$mailManager = \Drupal::service('plugin.manager.mail');
+	$module = 'consommable_calculator';
+	$key = 'product_inquiry_logs_mail';
+	// $to = \Drupal::config('system.site')->get('mail');
+	$to  = $email_to; 
+
+	$params['headers'] = [ 'Cc' => $email_cc ]; 
+	$params['message'] = '<p>Bonjour,</p><p></p><p></p><p>' . $message . '</p><p></p>';
+	$params['title'] = $email_subject;
+	$langcode = \Drupal::currentUser()->getPreferredLangcode();
+	$send = true;
+
+	$result = $mailManager->mail($module, $key, $to, $langcode, $params, NULL, $send);
+	if ($result['result'] != true) {
+		$message = t('There was a problem sending your email notification to @email.', array('@email' => $to));
+		\Drupal::logger('mail-log')->error($message);
+		return;
+	} else {
+		$message = t('An email notification has been sent to @email ', array('@email' => $to));
+		\Drupal::logger('mail-log')->notice($message);
+	}
+}

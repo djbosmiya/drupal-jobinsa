@@ -1,0 +1,8 @@
+consommable-calculator:
+  js:
+    js/consommable-calculator.custom.js: {}
+    
+  dependencies:
+    - core/drupal.ajax
+    - core/drupal.dialog
+    - core/drupal.dialog.ajax

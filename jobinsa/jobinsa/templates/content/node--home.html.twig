@@ -1,0 +1,244 @@
+{#
+/**
+ * @file
+ * Bootstrap Barrio's theme implementation to display a node.
+ *
+ * Available variables:
+ * - node: The node entity with limited access to object properties and methods.
+     Only "getter" methods (method names starting with "get", "has", or "is")
+     and a few common methods such as "id" and "label" are available. Calling
+     other methods (such as node.delete) will result in an exception.
+ * - label: The title of the node.
+ * - content: All node items. Use {{ content }} to print them all,
+ *   or print a subset such as {{ content.field_example }}. Use
+ *   {{ content|without('field_example') }} to temporarily suppress the printing
+ *   of a given child element.
+ * - author_picture: The node author user entity, rendered using the "compact"
+ *   view mode.
+ * - metadata: Metadata for this node.
+ * - date: Themed creation date field.
+ * - author_name: Themed author name field.
+ * - url: Direct URL of the current node.
+ * - display_submitted: Whether submission information should be displayed.
+ * - attributes: HTML attributes for the containing element.
+ *   The attributes.class element may contain one or more of the following
+ *   classes:
+ *   - node: The current template type (also known as a "theming hook").
+ *   - node--type-[type]: The current node type. For example, if the node is an
+ *     "Article" it would result in "node--type-article". Note that the machine
+ *     name will often be in a short form of the human readable label.
+ *   - node--view-mode-[view_mode]: The View Mode of the node; for example, a
+ *     teaser would result in: "node--view-mode-teaser", and
+ *     full: "node--view-mode-full".
+ *   The following are controlled through the node publishing options.
+ *   - node--promoted: Appears on nodes promoted to the front page.
+ *   - node--sticky: Appears on nodes ordered above other non-sticky nodes in
+ *     teaser listings.
+ *   - node--unpublished: Appears on unpublished nodes visible only to site
+ *     admins.
+ * - title_attributes: Same as attributes, except applied to the main title
+ *   tag that appears in the template.
+ * - content_attributes: Same as attributes, except applied to the main
+ *   content tag that appears in the template.
+ * - author_attributes: Same as attributes, except applied to the author of
+ *   the node tag that appears in the template.
+ * - title_prefix: Additional output populated by modules, intended to be
+ *   displayed in front of the main title tag that appears in the template.
+ * - title_suffix: Additional output populated by modules, intended to be
+ *   displayed after the main title tag that appears in the template.
+ * - view_mode: View mode; for example, "teaser" or "full".
+ * - teaser: Flag for the teaser state. Will be true if view_mode is 'teaser'.
+ * - page: Flag for the full page state. Will be true if view_mode is 'full'.
+ * - readmore: Flag for more state. Will be true if the teaser content of the
+ *   node cannot hold the main body content.
+ * - logged_in: Flag for authenticated user status. Will be true when the
+ *   current user is a logged-in member.
+ * - is_admin: Flag for admin user status. Will be true when the current user
+ *   is an administrator.
+ *
+ * @see template_preprocess_node()
+ */
+#}
+{{ attach_library('bootstrap_barrio/node') }}
+
+<div class="home-page-wrap">
+  <div class="home-banner-slider-wrap">
+     {{ drupal_view('homepage_slider','block_1') }}
+     <div class="scroll-btn-wrap text-center">
+           <a class="scroll-icon" href="#notre-offre-section"><img src="/themes/jobinsa/images/scroll-img.svg" width="44"></a>
+     </div>
+  </div>
+  <div class="container notre-offre-wrap" id="notre-offre-section">
+     {% if (node.field_notre_offre_title.value is not empty) %}
+        <h1 class="text-center">{{ node.field_notre_offre_title.value }}</h1>
+     {% endif %}
+     <div class="row notre-offre-inner">
+           {% for key, item in content.field_notre_offre_section if key|first != '#' %}
+            {% if (item['#paragraph'].field_single_link.value is not empty) or (item['#paragraph'].field_multi_link is not empty) %}
+            	{% if (item['#paragraph'].field_single_link.value is not empty) %}
+            		<div class="col-md-4 notre-offre-item">
+            			<a href="{{ item['#paragraph'].field_single_link.0.url }}">
+            				<div class="notre-img-block">
+			                    {% if (item['#paragraph'].field_image.value is not empty) %}
+			                        <div class="notre-img-inner">
+			                        	<img src="{{ file_url(item['#paragraph'].field_image[0].entity.field_media_image.entity.fileuri | image_style('notre_offre_image_375px'))}}"> 
+			                        </div>
+			                    {% endif %}
+			                    {% if (item['#paragraph'].field_title[0].value is not empty) %}
+			                        <div class="notre-right-title">{{ item['#paragraph'].field_title[0].value }}</div>
+			                    {% endif %}
+		                	</div>
+			                {% if (item['#paragraph'].field_sub_title[0].value is not empty) %}
+			                    <div class="notre-subtitle">{{ item['#paragraph'].field_sub_title[0].value }}</div>
+			                {% endif %}
+			                {% if (item['#paragraph'].field_title[0].value is not empty) %}
+			                    <h2 class="notre-title">{{ item['#paragraph'].field_title[0].value }}</h2>
+			                {% endif %}
+			                {% if (item['#paragraph'].field_description[0].value is not empty) %}
+			                    <div class="notre-des-text"> {{ item['#paragraph'].field_description[0].value|raw }}</div>
+			                {% endif %}
+							<div class="yellow-text-link-wrap">
+								<div class="yellow-text-link">{{ item['#paragraph'].field_single_link.0.title }}</div>
+							</div>
+            			</a>   
+            		</div> 
+            	{% endif %}
+            	{% if (item['#paragraph'].field_multi_link.value is not empty) %}
+            		<div class="col-md-4 notre-offre-item">
+		                <div class="notre-img-block">
+		                    {% if (item['#paragraph'].field_image.value is not empty) %}
+		                        <div class="notre-img-inner">
+		                        <img src="{{ file_url(item['#paragraph'].field_image[0].entity.field_media_image.entity.fileuri | image_style('notre_offre_image_375px'))}}"> 
+		                        </div>
+		                    {% endif %}
+		                    {% if (item['#paragraph'].field_title[0].value is not empty) %}
+		                        <div class="notre-right-title">{{ item['#paragraph'].field_title[0].value }}</div>
+		                    {% endif %}
+		                </div>
+		                {% if (item['#paragraph'].field_sub_title[0].value is not empty) %}
+		                    <div class="notre-subtitle">{{ item['#paragraph'].field_sub_title[0].value }}</div>
+		                {% endif %}
+		                {% if (item['#paragraph'].field_title[0].value is not empty) %}
+		                    <h2 class="notre-title">{{ item['#paragraph'].field_title[0].value }}</h2>
+		                {% endif %}
+		                {% if (item['#paragraph'].field_description[0].value is not empty) %}
+		                    <div class="notre-des-text"> {{ item['#paragraph'].field_description[0].value|raw }}</div>
+		                {% endif %}
+		                <div class="row multi-link-wrap">
+		                    {% for key, item in item['#paragraph'].field_multi_link if key1|first != '#' %}
+		                         <div class="multi-link-wrap col-lg-6">
+		                            <a class="multi-text-link" href="{{ item.url }}">{{ item.title }}</a>
+		                         </div>
+		                   {% endfor %}
+		               </div>
+            		</div>
+            	{% endif %}
+            {% else %}
+            	<div class="col-md-4 notre-offre-item">
+	                <div class="notre-img-block">
+	                    {% if (item['#paragraph'].field_image.value is not empty) %}
+	                        <div class="notre-img-inner">
+	                        <img src="{{ file_url(item['#paragraph'].field_image[0].entity.field_media_image.entity.fileuri | image_style('notre_offre_image_375px'))}}"> 
+	                        </div>
+	                    {% endif %}
+	                    {% if (item['#paragraph'].field_title[0].value is not empty) %}
+	                        <div class="notre-right-title">{{ item['#paragraph'].field_title[0].value }}</div>
+	                    {% endif %}
+	                </div>
+	                {% if (item['#paragraph'].field_sub_title[0].value is not empty) %}
+	                    <div class="notre-subtitle">{{ item['#paragraph'].field_sub_title[0].value }}</div>
+	                {% endif %}
+	                {% if (item['#paragraph'].field_title[0].value is not empty) %}
+	                    <h2 class="notre-title">{{ item['#paragraph'].field_title[0].value }}</h2>
+	                {% endif %}
+	                {% if (item['#paragraph'].field_description[0].value is not empty) %}
+	                    <div class="notre-des-text"> {{ item['#paragraph'].field_description[0].value|raw }}</div>
+	                {% endif %}      
+            	</div>
+            {% endif %}
+           {% endfor %}  
+     </div>
+  </div>
+  <div class="container propos-text-wrap">
+         {% if (node.field_a_propos_title.value is not empty) %}
+            <div class="black-subtitle">{{ node.field_a_propos_title.value }}</div>
+         {% endif %}
+         {% if (node.field_a_propo_description.value is not empty) %}
+            <h1 class="service-banner-desc">{{ node.field_a_propo_description.value|raw }}</h1>
+         {% endif %}
+  </div>
+  <div class="container-fluid propos-para-wrap">
+          <div class="row propos-para-inner">
+               {% for key, item in content.field_propos_section if key|first != '#' %}
+                <div class="col-md-4 propos-para-item">
+                     {% if (item['#paragraph'].field_icon.value is not empty) %}
+                        <div class="propos-icon"> 
+                            <img src="{{ file_url(item['#paragraph'].field_icon[0].entity.field_media_image.entity.fileuri)}}"> 
+                        </div>
+                     {% endif %}
+                     {% if (item['#paragraph'].field_title[0].value is not empty) %}
+                        <h6 class="propos-para-title"> {{ item['#paragraph'].field_title[0].value }}  </h6>
+                     {% endif %}
+                     {% if (item['#paragraph'].field_description[0].value is not empty) %}
+                        <div class="propos-para-text"> {{ item['#paragraph'].field_description[0].value|raw }}</div>
+                     {% endif %}
+                </div>
+               {% endfor %}
+          </div>
+          {% if (node.field_learn_more_link.value is not empty) %}
+                 <div class="learn-more-wrap text-center">
+                    <a class="yellow-btn" href="{{ node.field_learn_more_link.0.url }}">{{ node.field_learn_more_link.0.title }}</a>
+                 </div>
+          {% endif %}
+  </div>
+ <div class="partenaires-wrap">
+     <div class="container partenaires-inner">
+        {{ drupal_view('partenaires_logo','block_1') }}
+     </div>
+  </div>
+  <div class="container-fluid mps-wrap">
+     <div class="row mps-inner">
+          {% if (content.field_image_plus_text_section[0]['#paragraph'].field_image.value is not empty) %}
+            <div class="col-md-6 mps-left">
+              <img src="{{ file_url(content.field_image_plus_text_section[0]['#paragraph'].field_image.entity.field_media_image.entity.fileuri)}}" class="img-fluid"> 
+            </div>
+          {% endif %}
+           <div class="col-md-6 mps-right">
+               {% if (content.field_image_plus_text_section[0]['#paragraph'].field_title.value is not empty) %}
+                   <div class="white-subtitle colorw">{{ content.field_image_plus_text_section[0]['#paragraph'].field_title.value }}</div>
+               {% endif %}
+               {% if (content.field_image_plus_text_section[0]['#paragraph'].field_description.value is not empty) %}
+                    <h1 class="mps-desc colorw">{{ content.field_image_plus_text_section[0]['#paragraph'].field_description.value|raw }}</h1>
+               {% endif %}
+               {% if (content.field_image_plus_text_section[0]['#paragraph'].field_link.value is not empty) %}
+                 <div class="mps-link-wrap">
+                    <a class="yellow-btn green-shadow" href="{{ content.field_image_plus_text_section[0]['#paragraph'].field_link.0.url }}">{{ content.field_image_plus_text_section[0]['#paragraph'].field_link.0.title }}</a>
+                 </div>
+               {% endif %}
+           </div>
+     </div> 
+  </div>
+ 
+  <div class="container reference-block-wrap"> 
+          {% if (node.field_references_title.value is not empty) %}
+             <div class="black-subtitle">{{ node.field_references_title.value }}</div>
+          {% endif %}
+          {% if (node.field_references_description.value is not empty) %}
+             <h1 class="service-banner-desc">{{ node.field_references_description.value|raw }}</h1>
+          {% endif %}
+          <div class="row reference-item-wrap">
+               {% for key, item in content.field_references_section if key|first != '#' %}
+                    <div class="reference-item">
+                        {% if (item['#paragraph'].field_title[0].value is not empty) %}
+                           <h6 class="reference-item-title"> {{ item['#paragraph'].field_title[0].value }}  </h6>
+                        {% endif %}
+                        {% if (item['#paragraph'].field_description[0].value is not empty) %}
+                           <div class="reference-item-text"> {{ item['#paragraph'].field_description[0].value|raw }}</div>
+                        {% endif %}
+                    </div>
+               {% endfor %}
+          </div>
+  </div>
+
+
+</div>
